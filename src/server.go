@@ -18,14 +18,20 @@ func main() {
 		AllowOrigins: []string{"*"},
 		AllowMethods: []string{echo.GET, echo.HEAD, echo.PUT, echo.PATCH, echo.POST, echo.DELETE},
 	}))
-	// Root route => handler
-	e.GET("/", func(c echo.Context) error {
+
+	api := e.Group("/api/v1", serverHeader)
+	api.GET("/test", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, World!\n")
 	})
+	api.POST("/price", controllers.GrabPrice) // Price endpoint
 
-	e.POST("/price", controllers.GrabPrice) // Price endpoint
 	// Server
 	e.Logger.Fatal(e.Start(":8000"))
 }
 
-// The "godef" command is not available. Run "go install -v github.com/rogpeppe/godef@latest" to install.
+func serverHeader(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		c.Response().Header().Set("x-version", "Test/v1.0")
+		return next(c)
+	}
+}
